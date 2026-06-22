@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-06-22
+
+### Fixed
+- Cart: product thumbnails for items with multiple images no longer collapse to `height: 0`. The hover-slider viewport is kept in flow on the cart so the base image defines the height (overlays stay absolute on top). PLP/PDP unchanged. (IS-6110)
+
 ## [2.0.1] - 2026-04-12
 
 ### Changed
