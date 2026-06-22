@@ -241,3 +241,20 @@
         transition-duration: 0ms !important;
     }
 }
+
+/* === Cart fix (IS-6110) ===
+ * On the cart the thumbnail container has no reserved aspect-ratio box, so the
+ * absolutely-positioned viewport pulls the base image out of flow and the
+ * container collapses to height:0 (image invisible). Keep the viewport in flow
+ * on the cart so the base image defines the height; overlays stay absolute on
+ * top of the now-relative viewport. */
+.checkout-cart-index .product-image-container.has-hover-slider .hover-slider-viewport {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+}
+.checkout-cart-index .product-image-container.has-hover-slider .hover-slider-viewport > img {
+    height: auto;
+}
