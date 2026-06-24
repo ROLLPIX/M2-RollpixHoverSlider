@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-06-24
+
+### Fixed
+- Configurable products (slider mode): the first gallery image is no longer dropped and the base-image color no longer appears twice. The main `<img>` is now rendered server-side as `gallery_urls[0]` (the first variant), so the default thumbnail and slide 0 match the slider — no flash, no JS change. For simple products `gallery_urls[0] == small_image`, so it is a visual no-op. (IS-6453)
+
+### Changed
+- The slider is now injected only on configured listing surfaces. `Config::isEnabledForImageId()` maps the image block's `image_id` to the `locations/*` config (previously declared but never consulted) and hard-skips cart/minicart/wishlist/compare/checkout/PDP contexts. This fixes product thumbnails not loading on the cart and supersedes the IS-6110 CSS workaround (kept as a fallback). Note: in Luma, search results reuse the category image ids, so `search_results` follows `category_page`. (IS-6453)
+
 ## [2.0.2] - 2026-06-22
 
 ### Fixed

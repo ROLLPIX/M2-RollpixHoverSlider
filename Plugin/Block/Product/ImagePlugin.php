@@ -78,6 +78,10 @@ class ImagePlugin
      */
     private function injectSliderHtml(string $html, array $galleryUrls): string
     {
+        if (empty($galleryUrls)) {
+            return $html;
+        }
+
         $galleryJson = htmlspecialchars($this->jsonSerializer->serialize($galleryUrls), ENT_QUOTES, 'UTF-8');
         $sliderConfig = $this->buildSliderConfig();
         $configJson = htmlspecialchars($this->jsonSerializer->serialize($sliderConfig), ENT_QUOTES, 'UTF-8');
@@ -88,36 +92,64 @@ class ImagePlugin
             . 'data-slider-config="' . $configJson . '" '
             . 'style="--slider-transition-speed: ' . $transitionSpeed . 'ms;"';
 
-        $hasContainer = strpos($html, 'product-image-container') !== false;
+        // Match the base product image regardless of attribute order (Luma + Hyvä).
+        $pattern = '/(<img\s[^>]*class="product-image-photo"[^>]*>)/s';
+        if (!preg_match($pattern, $html, $matches)) {
+            return $html;
+        }
+        $originalImg = $matches[1];
 
-        if ($hasContainer) {
-            // Luma path: add attributes to existing container
+        // Render the first gallery image as the visible/base image so the default thumbnail
+        // and slide 0 are gallery_urls[0] (the first variant) instead of the product's
+        // small_image. The JS reuses this <img> as slide 0, so this alone fixes the
+        // dropped-first-variant and duplicate-base-color bugs with no JS change. For simple
+        // products gallery_urls[0] == small_image, so it is a visual no-op. (IS-6453)
+        $newImg = $this->rewriteBaseImg($originalImg, (string) $galleryUrls[0]);
+
+        if (strpos($html, 'product-image-container') !== false) {
+            // Luma path: tag the existing container, then wrap the (rewritten) img in a viewport
             $html = preg_replace(
                 '/class="product-image-container([^"]*)"/',
                 'class="product-image-container$1 has-hover-slider" ' . $sliderAttrs,
                 $html
             );
-
-            // Wrap the existing img in a slider viewport
-            $pattern = '/(<img\s+class="product-image-photo"[^>]*>)/s';
-            if (preg_match($pattern, $html, $matches)) {
-                $originalImg = $matches[1];
-                $sliderContainer = '<span class="hover-slider-viewport">' . $originalImg . '</span>';
-                $html = str_replace($originalImg, $sliderContainer, $html);
-            }
+            $sliderContainer = '<span class="hover-slider-viewport">' . $newImg . '</span>';
         } else {
             // Hyvä path: no wrapper container, wrap the img directly
-            $pattern = '/(<img\s[^>]*class="product-image-photo"[^>]*>)/s';
-            if (preg_match($pattern, $html, $matches)) {
-                $originalImg = $matches[1];
-                $wrapped = '<span class="has-hover-slider" ' . $sliderAttrs . '>'
-                    . '<span class="hover-slider-viewport">' . $originalImg . '</span>'
-                    . '</span>';
-                $html = str_replace($originalImg, $wrapped, $html);
-            }
+            $sliderContainer = '<span class="has-hover-slider" ' . $sliderAttrs . '>'
+                . '<span class="hover-slider-viewport">' . $newImg . '</span>'
+                . '</span>';
         }
 
-        return $html;
+        return str_replace($originalImg, $sliderContainer, $html);
+    }
+
+    /**
+     * Set the <img>'s src to the given URL and strip attributes that could override it on the
+     * client (srcset/sizes responsive candidates, data-src lazy-load placeholders).
+     *
+     * @param string $imgTag
+     * @param string $url
+     * @return string
+     */
+    private function rewriteBaseImg(string $imgTag, string $url): string
+    {
+        if ($url === '') {
+            return $imgTag;
+        }
+
+        $newSrc = 'src="' . htmlspecialchars($url, ENT_QUOTES, 'UTF-8') . '"';
+
+        if (preg_match('/\bsrc="[^"]*"/', $imgTag, $m)) {
+            $imgTag = str_replace($m[0], $newSrc, $imgTag);
+        } else {
+            $imgTag = preg_replace('/<img\b/', '<img ' . $newSrc, $imgTag, 1);
+        }
+
+        // Drop attributes that could re-override the src after first paint.
+        $imgTag = preg_replace('/\s(?:srcset|sizes|data-src)="[^"]*"/', '', $imgTag);
+
+        return $imgTag;
     }
 
     /**

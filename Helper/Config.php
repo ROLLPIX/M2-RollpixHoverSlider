@@ -254,6 +254,51 @@ class Config extends AbstractHelper
     }
 
     /**
+     * Decide whether the slider/flip should be injected for a given image block context.
+     *
+     * Maps Magento's image_id (defined per theme in view.xml) to the locations config.
+     * Transactional, account and PDP contexts are always skipped — the slider belongs on
+     * listings, never on cart/minicart/wishlist/compare/checkout or the product page gallery
+     * (rendering it there is what broke cart thumbnails — see IS-6110/IS-6453).
+     *
+     * Note: in Luma, search results reuse the category_page_* image ids, so search cannot be
+     * gated independently of category by image id alone — search follows category here.
+     *
+     * @param string $imageId
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isEnabledForImageId(string $imageId, ?int $storeId = null): bool
+    {
+        if (!$this->isEnabled($storeId)) {
+            return false;
+        }
+
+        $id = strtolower($imageId);
+
+        // Transactional / account / PDP contexts: never inject the slider.
+        foreach (['cart', 'wishlist', 'compar', 'checkout', 'order', 'gift', 'product_page'] as $needle) {
+            if (strpos($id, $needle) !== false) {
+                return false;
+            }
+        }
+
+        // Listing contexts: honour the locations config.
+        if (strpos($id, 'category_page') !== false) {
+            // Search results reuse the category image ids in Luma — treat as category.
+            return $this->isEnabledForCategoryPage($storeId);
+        }
+        if (strpos($id, 'related') !== false
+            || strpos($id, 'upsell') !== false
+            || strpos($id, 'crosssell') !== false) {
+            return $this->isEnabledForRelatedProducts($storeId);
+        }
+
+        // Unknown listing-like contexts (widgets, CMS, Page Builder, custom grids).
+        return $this->isEnabledForWidgetProducts($storeId);
+    }
+
+    /**
      * Get hover mode (flip or slider)
      *
      * @param int|null $storeId

@@ -243,6 +243,11 @@
 }
 
 /* === Cart fix (IS-6110) ===
+ * Fallback as of IS-6453: the slider is now gated out of cart/minicart contexts
+ * (Config::isEnabledForImageId), so .has-hover-slider should no longer appear on
+ * the cart. Kept as defense-in-depth in case the slider leaks onto a cart-like
+ * page (e.g. a product widget inside the cart layout).
+ *
  * On the cart the thumbnail container has no reserved aspect-ratio box, so the
  * absolutely-positioned viewport pulls the base image out of flow and the
  * container collapses to height:0 (image invisible). Keep the viewport in flow
