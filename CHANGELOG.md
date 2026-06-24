@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.3] - 2026-06-24
+
 ### Fixed
 - Configurable products (slider mode): the first gallery image is no longer dropped and the base-image color no longer appears twice. The main `<img>` is now rendered server-side as `gallery_urls[0]` (the first variant), so the default thumbnail and slide 0 match the slider — no flash, no JS change. For simple products `gallery_urls[0] == small_image`, so it is a visual no-op. (IS-6453)
 
