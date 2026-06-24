@@ -58,6 +58,13 @@ class ImagePlugin
             return $result;
         }
 
+        // Only inject on configured listing surfaces. Skips cart/minicart/wishlist/compare/
+        // checkout/PDP — rendering the slider there breaks those thumbnails (IS-6110/IS-6453)
+        // and also avoids the gallery DB queries for contexts that never show the slider.
+        if (!$this->config->isEnabledForImageId($imageId)) {
+            return $result;
+        }
+
         // Always attach slider data — handles both slider mode and flip mode
         // (flip on desktop = slider with hoverFlip, flip on mobile = auto-upgrade to slider)
         return $this->attachSliderData($result, $product, $imageId);
