@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-06-25
+
+### Fixed
+- Admin: deselecting every option in the **"Atributos que Diferencian Imágenes"** multiselect and saving did not clear the value — it kept the previously stored attribute. An empty `<select multiple>` submits nothing, so Magento never updates the path. Added `<can_be_empty>1</can_be_empty>` to the field so Magento renders the hidden empty input and the value can be cleared back to "all variants". (IS-6421)
+
 ## [2.1.1] - 2026-06-25
 
 ### Fixed
