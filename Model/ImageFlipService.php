@@ -591,8 +591,41 @@ class ImageFlipService
             $perChild = $this->config->getConfigurableImagesPerChild();
             $maxTotal = $this->config->getMaxImages();
 
+            // IS-6421: explicit variant-selector path. When the admin configures an
+            // attribute (e.g. color) that is a variation axis of this product, keep one
+            // representative child per distinct value and use ITS images. This takes
+            // precedence over the legacy ConfigurableGallery path below, so it works even
+            // if the `associated_attributes` column lingers after CG is uninstalled. Only
+            // engages when the axis matches and the representatives have images; otherwise
+            // it falls through to the legacy behavior (no regression when unset).
+            $variantHandled = false;
+            if (!empty($this->config->getVariantSelectorAttributes())) {
+                $childIds = $this->getConfigurableChildIds($productId);
+                $representatives = !empty($childIds)
+                    ? $this->reduceChildrenToVariantRepresentatives($productId, $childIds)
+                    : [];
+
+                if (!empty($representatives)) {
+                    $perVariant = $perChild > 0 ? $perChild : $maxTotal;
+                    $this->preloadGalleryBatch($representatives, $perVariant);
+
+                    $variantImages = [];
+                    foreach ($representatives as $repId) {
+                        $repPaths = $this->galleryCache[(int) $repId] ?? [];
+                        foreach (array_slice($repPaths, 0, $perVariant) as $path) {
+                            $variantImages[] = $path;
+                        }
+                    }
+
+                    if (!empty($variantImages)) {
+                        $imagePaths = array_slice(array_values(array_unique($variantImages)), 0, $maxTotal);
+                        $variantHandled = true;
+                    }
+                }
+            }
+
             // Case 1: Parent has images with associated_attributes (ConfigurableGallery)
-            if (!empty($imagePaths) && $perChild > 0 && $this->hasAssociatedAttributesColumn()) {
+            if (!$variantHandled && !empty($imagePaths) && $perChild > 0 && $this->hasAssociatedAttributesColumn()) {
                 $filteredPaths = $this->getImagesGroupedByVariant($productId, $perChild, $maxTotal);
                 if (!empty($filteredPaths)) {
                     $imagePaths = $filteredPaths;
@@ -600,17 +633,9 @@ class ImageFlipService
             }
 
             // Case 2: Parent has no images or no ConfigurableGallery — use children's images
-            if (empty($imagePaths) || (!$this->hasAssociatedAttributesColumn() && $perChild > 0)) {
+            if (!$variantHandled && (empty($imagePaths) || (!$this->hasAssociatedAttributesColumn() && $perChild > 0))) {
                 $childIds = $this->getConfigurableChildIds($productId);
                 if (!empty($childIds)) {
-                    // IS-6421: collapse variants that should not differ by image (e.g. talle).
-                    // Keep one representative child per distinct value of the configured
-                    // selector attribute (e.g. one per color). Empty/no-match => full list.
-                    $representatives = $this->reduceChildrenToVariantRepresentatives($productId, $childIds);
-                    if (!empty($representatives)) {
-                        $childIds = $representatives;
-                    }
-
                     $this->preloadGalleryBatch($childIds, $perChild > 0 ? $perChild : $maxTotal);
 
                     $childImages = [];

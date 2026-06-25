@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-06-25
+
+### Fixed
+- Variant-selector (IS-6421) had no effect when the `associated_attributes` column lingered in the DB after the ConfigurableGallery module was uninstalled (the column is not dropped by removing the module's files). `hasAssociatedAttributesColumn()` still returned `true`, so the slider took the legacy ConfigurableGallery path and the new selector logic was gated out. The variant-selector path now runs **first and takes precedence** whenever a selector attribute is configured and matches one of the product's variation axes — independent of that leftover column. Also works with `Imágenes por Variante = 0` now (one full set per representative variant). No change when the selector is unset. (IS-6421)
+
 ## [2.1.0] - 2026-06-25
 
 ### Added
