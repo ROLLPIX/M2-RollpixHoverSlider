@@ -603,6 +603,14 @@ class ImageFlipService
             if (empty($imagePaths) || (!$this->hasAssociatedAttributesColumn() && $perChild > 0)) {
                 $childIds = $this->getConfigurableChildIds($productId);
                 if (!empty($childIds)) {
+                    // IS-6421: collapse variants that should not differ by image (e.g. talle).
+                    // Keep one representative child per distinct value of the configured
+                    // selector attribute (e.g. one per color). Empty/no-match => full list.
+                    $representatives = $this->reduceChildrenToVariantRepresentatives($productId, $childIds);
+                    if (!empty($representatives)) {
+                        $childIds = $representatives;
+                    }
+
                     $this->preloadGalleryBatch($childIds, $perChild > 0 ? $perChild : $maxTotal);
 
                     $childImages = [];
@@ -795,5 +803,137 @@ class ImageFlipService
         // Deduplicate and cap
         $result = array_values(array_unique($result));
         return array_slice($result, 0, $maxTotal);
+    }
+
+    /**
+     * Reduce a configurable's children to one representative per distinct value
+     * of the configured variant-selector attribute (e.g. one child per color).
+     *
+     * Children that share the same selector value (e.g. same color, different talle)
+     * collapse to a single representative, so size-only variants no longer duplicate
+     * images in the slider. Children without a value for the axis are each kept.
+     *
+     * @param int $parentId
+     * @param array $childIds
+     * @return array Reduced, ordered child IDs, or [] when no configured selector
+     *               attribute matches one of the product's variation axes (caller
+     *               then keeps the full child list = legacy behavior).
+     */
+    private function reduceChildrenToVariantRepresentatives(int $parentId, array $childIds): array
+    {
+        $selectorCodes = $this->config->getVariantSelectorAttributes();
+        if (empty($selectorCodes) || empty($childIds)) {
+            return [];
+        }
+
+        $attributeId = $this->resolveVariantSelectorAttributeId($parentId, $selectorCodes);
+        if (!$attributeId) {
+            return [];
+        }
+
+        $valuesByChild = $this->getChildAttributeValues($childIds, $attributeId);
+        if (empty($valuesByChild)) {
+            return [];
+        }
+
+        // Stable, deterministic order by entity ID
+        $childIds = array_map('intval', $childIds);
+        sort($childIds);
+
+        $representatives = [];
+        $seen = [];
+        foreach ($childIds as $childId) {
+            // Children missing the axis value each get their own bucket so their
+            // images are never silently dropped.
+            $value = $valuesByChild[$childId] ?? null;
+            $key = $value === null ? 'null-' . $childId : 'v-' . $value;
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $representatives[] = $childId;
+        }
+
+        return $representatives;
+    }
+
+    /**
+     * Resolve the EAV attribute ID of the first configured selector attribute that
+     * is actually a variation axis (super attribute) of the configurable product.
+     *
+     * @param int $parentId
+     * @param string[] $selectorCodes Priority-ordered attribute codes
+     * @return int|null
+     */
+    private function resolveVariantSelectorAttributeId(int $parentId, array $selectorCodes): ?int
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $superAttrTable = $this->resourceConnection->getTableName('catalog_product_super_attribute');
+        $eavAttributeTable = $this->resourceConnection->getTableName('eav_attribute');
+
+        // code => attribute_id for this product's variation axes
+        $axes = $connection->fetchPairs(
+            $connection->select()
+                ->from(['sa' => $superAttrTable], [])
+                ->join(
+                    ['ea' => $eavAttributeTable],
+                    'sa.attribute_id = ea.attribute_id',
+                    ['ea.attribute_code', 'ea.attribute_id']
+                )
+                ->where('sa.product_id = ?', $parentId)
+                ->where('ea.entity_type_id = ?', 4) // catalog_product entity type
+        );
+
+        if (empty($axes)) {
+            return null;
+        }
+
+        foreach ($selectorCodes as $code) {
+            if (isset($axes[$code])) {
+                return (int) $axes[$code];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the (store-aware) attribute value of each child for a select attribute.
+     * Configurable variation axes are always select attributes (int backend).
+     *
+     * @param array $childIds
+     * @param int $attributeId
+     * @return array entity_id => value (option id)
+     */
+    private function getChildAttributeValues(array $childIds, int $attributeId): array
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $intTable = $this->resourceConnection->getTableName('catalog_product_entity_int');
+        $storeId = (int) $this->storeManager->getStore()->getId();
+
+        $rows = $connection->fetchAll(
+            $connection->select()
+                ->from($intTable, ['entity_id', 'store_id', 'value'])
+                ->where('attribute_id = ?', $attributeId)
+                ->where('entity_id IN (?)', array_map('intval', $childIds))
+                ->where('store_id IN (?)', [0, $storeId])
+        );
+
+        // Default (store 0) values, with store-specific overrides winning.
+        $default = [];
+        $override = [];
+        foreach ($rows as $row) {
+            if ($row['value'] === null || $row['value'] === '') {
+                continue;
+            }
+            $entityId = (int) $row['entity_id'];
+            if ((int) $row['store_id'] === $storeId && $storeId !== 0) {
+                $override[$entityId] = $row['value'];
+            } else {
+                $default[$entityId] = $row['value'];
+            }
+        }
+
+        return $override + $default;
     }
 }

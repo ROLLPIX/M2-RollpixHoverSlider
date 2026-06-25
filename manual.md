@@ -64,6 +64,7 @@ Estos campos solo aparecen cuando el **Modo de Hover** es "Slider de galeria".
 | Velocidad de Transicion (ms) | Numero | Duracion de la transicion en milisegundos | 250 |
 | Maximo de Imagenes | Numero | Cantidad maxima de imagenes por producto (2-20) | 8 |
 | Imagenes por Variante | Numero | Para configurables: maximo de imagenes de cada hijo/variante. 0 = todas | 0 |
+| Atributos que Diferencian Imagenes | Multiseleccion | Para configurables: atributos (ej: Color) cuyas variantes deben mostrar imagenes diferentes. Vacio = usa las imagenes de todas las variantes | (vacio) |
 | Navegacion Circular | Si/No | Permite navegar de la ultima imagen a la primera y viceversa | No |
 | Volver a Imagen Principal | Si/No | Al quitar el mouse, vuelve automaticamente a la primera imagen | Si |
 
@@ -146,6 +147,12 @@ El modulo soporta productos configurables:
 - **Con rol custom:** asignar el rol en las imagenes del producto padre configurable
 
 **Importante:** si usas "Segunda Imagen de Galeria", asegurate de que el producto configurable padre tenga al menos 2 imagenes propias en su galeria.
+
+**Evitar imagenes duplicadas por variante (Modo Slider).** Cuando un configurable varia por mas de un atributo (por ejemplo Color y Talle) y las imagenes viven en los hijos, el slider toma las imagenes de cada hijo: como los distintos talles de un mismo color tienen las mismas fotos, terminan repetidas (4 talles del color negro = 4 veces las mismas fotos).
+
+Para resolverlo, en **Modo Slider > "Atributos que Diferencian Imagenes"** elegi el atributo que realmente cambia las fotos (ej: **Color**). El modulo va a mostrar una sola variante por cada valor distinto de ese atributo (una por color), ignorando las demas (talle). Podes elegir varios atributos en orden de prioridad: el modulo usa el primero que sea eje de variacion del producto. Si el campo queda **vacio**, se mantiene el comportamiento clasico (imagenes de todas las variantes).
+
+> Combinalo con **"Imagenes por Variante"** para limitar cuantas fotos toma de cada variante representativa (ej: 1 = solo la primera foto de cada color).
 
 ## Tipos de animacion
 
