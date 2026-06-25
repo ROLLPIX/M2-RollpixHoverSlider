@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-06-25
+
+### Fixed
+- Slider mode (stacked fade/instant): the base image is now hidden (`opacity: 0`) while an overlay slide is active and restored at slide 0. Without this, products with transparent PNG overlays showed the base image bleeding through behind the active slide — two images superimposed on hover (e.g. "FOX RANGER GEL DEDO CORTO Mujer"). This re-applies the original IS-6108 fix, which lived in the never-merged PR #2 and was lost when later releases redeployed `hover-slider.js` from the repo over the in-place prod patch. A fade transition is also added to the base so it dims in sync with the overlay. (IS-6108)
+
 ## [2.1.2] - 2026-06-25
 
 ### Fixed
