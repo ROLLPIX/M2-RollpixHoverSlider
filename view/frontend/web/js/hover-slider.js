@@ -134,7 +134,11 @@ define([
                 state.$track = $track;
             } else {
                 // STACKED: base in flow, overlays absolute on top (fade/instant)
-                $baseImg.css(baseCss).addClass('hover-slider-base');
+                var baseStackedCss = $.extend({}, baseCss);
+                if (transition === 'fade') {
+                    baseStackedCss.transition = 'opacity ' + speed + 'ms ease';
+                }
+                $baseImg.css(baseStackedCss).addClass('hover-slider-base');
                 state.$slides.push($baseImg);
 
                 for (var j = 1; j < count; j++) {
@@ -171,10 +175,13 @@ define([
             state.currentIndex = index;
 
             if (state.useOverlay) {
-                // Fade/instant: toggle overlay opacity
+                // Fade/instant: toggle overlay opacity, hide base while overlay is active
                 state.$viewport.find('.hover-slider-overlay').css({ opacity: 0, pointerEvents: 'none' });
                 if (index > 0 && state.$slides[index]) {
                     state.$slides[index].css({ opacity: 1, pointerEvents: 'auto' });
+                    state.$slides[0].css('opacity', 0);
+                } else {
+                    state.$slides[0].css('opacity', 1);
                 }
             } else {
                 // Slide: move track
