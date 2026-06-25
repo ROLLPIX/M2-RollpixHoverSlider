@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-25
+
+### Added
+- Slider mode: new admin setting **"Atributos que Diferencian Imágenes"** (`hover_slider/variant_selector_attributes`, multiselect). For configurable products the slider now keeps one representative variant per distinct value of the first configured attribute that is a variation axis of the product (e.g. one image set per *color*), so size-only variants (talle) no longer repeat the same photos. Empty = legacy behavior (images of every variant). This embeds the variant-selector mechanic previously provided by the Rollpix ConfigurableGallery module, without depending on it or on per-image color mapping. (IS-6421)
+
 ## [2.0.3] - 2026-06-24
 
 ### Fixed

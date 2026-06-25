@@ -98,6 +98,12 @@
                     <comment><![CDATA[Para configurables: máximo de imágenes de cada hijo/variante. 1 = solo la primera foto de cada color. 0 = todas. Por defecto: 0.]]></comment>
                     <depends><field id="rollpix_imageflip/general/mode">slider</field></depends>
                 </field>
+                <field id="variant_selector_attributes" translate="label comment" type="multiselect" sortOrder="47" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Atributos que Diferencian Imágenes</label>
+                    <source_model>Rollpix\ImageFlipHover\Model\Config\Source\ConfigurableAttributes</source_model>
+                    <comment><![CDATA[Para configurables: atributos (ej: <strong>Color</strong>) cuyas variantes deben mostrar imágenes diferentes. El módulo usa el primer atributo de la lista que sea eje de variación del producto y muestra una sola variante por cada valor distinto (ej: una foto por color, sin repetir por talle). <strong>Vacío = usa las imágenes de todas las variantes</strong> (comportamiento clásico).]]></comment>
+                    <depends><field id="rollpix_imageflip/general/mode">slider</field></depends>
+                </field>
                 <field id="loop" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Navegación Circular</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

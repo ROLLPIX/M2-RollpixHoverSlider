@@ -29,6 +29,7 @@ class Config extends AbstractHelper
     private const XML_PATH_TRANSITION_SPEED = 'rollpix_imageflip/hover_slider/transition_speed';
     private const XML_PATH_MAX_IMAGES = 'rollpix_imageflip/hover_slider/max_images';
     private const XML_PATH_CONFIGURABLE_IMAGES_PER_CHILD = 'rollpix_imageflip/hover_slider/configurable_images_per_child';
+    private const XML_PATH_VARIANT_SELECTOR_ATTRIBUTES = 'rollpix_imageflip/hover_slider/variant_selector_attributes';
     private const XML_PATH_LOOP = 'rollpix_imageflip/hover_slider/loop';
 
     // Desktop
@@ -398,6 +399,30 @@ class Config extends AbstractHelper
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
+    }
+
+    /**
+     * Ordered, priority list of attribute codes that differentiate images on
+     * configurable products (e.g. ["color"]). The slider keeps one representative
+     * variant per distinct value of the first of these attributes that is also a
+     * variation axis of the product. Empty = use the images of every variant.
+     *
+     * @param int|null $storeId
+     * @return string[]
+     */
+    public function getVariantSelectorAttributes(?int $storeId = null): array
+    {
+        $value = (string) $this->scopeConfig->getValue(
+            self::XML_PATH_VARIANT_SELECTOR_ATTRIBUTES,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
+
+        if ($value === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map('trim', explode(',', $value))));
     }
 
     /**
