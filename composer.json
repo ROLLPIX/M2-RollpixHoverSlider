@@ -2,7 +2,7 @@
     "name": "rollpix/module-image-flip-hover",
     "description": "Magento 2 module for product image hover effects on PLP. Supports image flip (single alternate image) and gallery slider (navigate all images with arrows, mouse tracking, swipe). Compatible with Luma and Hyvä themes.",
     "type": "magento2-module",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "license": "MIT",
     "keywords": [
         "magento2",
