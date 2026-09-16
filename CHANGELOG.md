@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-09-16
+
+### Fixed
+- **Hyvä storefronts showed no slider at all.** The module printed its markup correctly — containers, gallery JSON, per-card config — but booted the JS through `x-magento-init`, and Hyvä ships neither RequireJS nor jQuery, so nothing ever picked that markup up: every card stayed frozen on one image. The vanilla build did exist, but only inside the `Rollpix_ImageFlipHoverHyvaCompat` sub-module, which had to be enabled by hand; an install where nobody knew that (Panda Toys, M2 migration) looked exactly like a broken module. The main module now detects the active theme (`ViewModel\ImageFlip::isHyvaTheme()`, walking the inheritance chain) and loads the build that fits: the AMD one on Luma, the standalone one on Hyvä. Nothing to enable, nothing to configure.
+
+### Added
+- `view/frontend/web/js/hover-slider-standalone.js`: the slider with no jQuery and no AMD — same behaviour, same markup, same CSS classes as the Luma build (track/overlay slides, arrows, mouse tracking, swipe, bars/dots/pills/counter indicators, `MutationObserver` for listings that reload). Settings arrive in a JSON island rather than an inline script, so a strict CSP needs no hash.
+
+### Changed
+- `Rollpix_ImageFlipHoverHyvaCompat` is deprecated and now inert: its layout no longer removes or adds anything, so the storefront behaves the same whether it is enabled or not. It stays registered on purpose — dropping it would break `setup:upgrade` on installs that already list it in `app/etc/config.php`.
+
 ## [2.1.3] - 2026-06-25
 
 ### Fixed

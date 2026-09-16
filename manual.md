@@ -191,7 +191,7 @@ Verificar que el producto configurable padre tenga imagenes propias en su galeri
 
 ### El modulo es compatible con Hyva Theme?
 
-Si. El modulo incluye un sub-modulo de compatibilidad (`Rollpix_ImageFlipHoverHyvaCompat`) que reemplaza el JS de Luma (jQuery/RequireJS) con vanilla JS para Hyva. Se instala automaticamente si Hyva esta presente. Soporta todas las funciones: flip, slider, flechas, indicadores, swipe mobile.
+Si, sin configurar nada. El modulo trae dos builds del mismo slider y elige uno segun el tema activo: en Luma el de siempre (jQuery/RequireJS) y en Hyva uno vanilla que arranca solo, porque Hyva no tiene ninguno de los dos. Soporta todas las funciones: flip, slider, flechas, indicadores, swipe mobile. (Hasta la 2.1.x esto dependia de habilitar a mano el sub-modulo `Rollpix_ImageFlipHoverHyvaCompat`, que quedo obsoleto.)
 
 ## Solucion de problemas
 

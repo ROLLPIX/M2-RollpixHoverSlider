@@ -10,6 +10,7 @@ namespace Rollpix\ImageFlipHover\ViewModel;
 use Rollpix\ImageFlipHover\Helper\Config;
 use Rollpix\ImageFlipHover\Model\ImageFlipService;
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Framework\View\DesignInterface;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Framework\Serialize\Serializer\Json;
 
@@ -31,18 +32,55 @@ class ImageFlip implements ArgumentInterface
     private Json $jsonSerializer;
 
     /**
+     * @var DesignInterface
+     */
+    private DesignInterface $design;
+
+    /**
      * @param Config $config
      * @param ImageFlipService $imageFlipService
      * @param Json $jsonSerializer
+     * @param DesignInterface $design
      */
     public function __construct(
         Config $config,
         ImageFlipService $imageFlipService,
-        Json $jsonSerializer
+        Json $jsonSerializer,
+        DesignInterface $design
     ) {
         $this->config = $config;
         $this->imageFlipService = $imageFlipService;
         $this->jsonSerializer = $jsonSerializer;
+        $this->design = $design;
+    }
+
+    /**
+     * Is the storefront being rendered by a Hyva theme?
+     *
+     * Hyva ships neither RequireJS nor jQuery, so the AMD build of the slider
+     * (js/hover-slider.js) never runs there: the server-side markup is printed
+     * and nothing picks it up. This decides which of the two builds init.phtml
+     * loads, so a single module serves both worlds with nothing to enable by
+     * hand.
+     *
+     * The whole inheritance chain is walked because a shop's own theme (say
+     * Rollpix/pandatoys) only reaches Hyva through its parents.
+     *
+     * @return bool
+     */
+    public function isHyvaTheme(): bool
+    {
+        $theme = $this->design->getDesignTheme();
+
+        while ($theme !== null && $theme->getId()) {
+            if (stripos((string) $theme->getCode(), 'Hyva/') === 0) {
+                return true;
+            }
+
+            $theme = $theme->getParentTheme();
+        }
+
+        return false;
     }
 
     /**

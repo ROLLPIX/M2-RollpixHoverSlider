@@ -89,11 +89,8 @@ bin/magento setup:static-content:deploy -f
 bin/magento cache:flush
 ```
 
-For Hyvä themes, also enable:
-```bash
-bin/magento module:enable Rollpix_ImageFlipHoverHyvaCompat
-bin/magento setup:upgrade
-```
+That is all: Luma and Hyvä are both covered by these commands — there is no
+companion module to enable.
 
 ---
 
@@ -160,18 +157,21 @@ When `Rollpix_ConfigurableGallery` is installed, the slider reads the `associate
 
 ## Hyvä Theme Support
 
-The module includes `Rollpix_ImageFlipHoverHyvaCompat`, a sub-module that:
+Hyvä works out of the box. The module ships two builds of the same slider and
+picks one from the active theme:
 
-- Replaces jQuery/RequireJS JS with vanilla JavaScript
-- Supports all features: flip, slider, all navigation types, all indicators
-- CSS is theme-agnostic (works in both Luma and Hyvä)
+| Theme | Build | How it loads |
+|---|---|---|
+| Luma and derivatives | `js/hover-slider.js` (AMD + jQuery) | `x-magento-init` |
+| Hyvä and derivatives | `js/hover-slider-standalone.js` (vanilla) | plain `<script defer>` |
 
-Enable with:
-```bash
-bin/magento module:enable Rollpix_ImageFlipHoverHyvaCompat
-```
+Detection walks the theme inheritance chain, so a child theme of `Hyva/default`
+is recognised as Hyvä. Markup, CSS classes and every feature — flip, slider, all
+navigation types, all indicators — are the same in both.
 
-> **Note**: Disable HyvaCompat when using Luma theme.
+> **Deprecated**: `Rollpix_ImageFlipHoverHyvaCompat` used to carry the vanilla
+> build and had to be enabled by hand. Since 2.2.0 it does nothing; leave it
+> enabled or disabled, it makes no difference.
 
 ---
 

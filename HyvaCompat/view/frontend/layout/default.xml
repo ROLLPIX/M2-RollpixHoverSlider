@@ -4,25 +4,22 @@
  * @author Rollpix
  * @package Rollpix_ImageFlipHoverHyvaCompat
  *
- * Replaces Luma JS (RequireJS/jQuery) with vanilla JS for Hyvä compatibility.
- * CSS files from the main module are inherited via theme fallback.
+ * DEPRECATED, and deliberately empty since 2.2.0.
+ *
+ * This sub-module used to carry the vanilla-JS build for Hyva: it removed the
+ * Luma init block and printed its own inline script. That meant a Hyva shop only
+ * got a working slider if somebody remembered to run
+ * `bin/magento module:enable Rollpix_ImageFlipHoverHyvaCompat`, which is not what
+ * "compatible with Luma and Hyva" should mean. More than one install shipped with
+ * the module present, disabled, and the cards frozen on a single image.
+ *
+ * The main module now picks the build from the active theme, so there is nothing
+ * left to do here. The module itself stays registered — removing it would break
+ * `setup:upgrade` on installs that already list it in app/etc/config.php — but it
+ * no longer changes the layout, so it behaves the same enabled or disabled.
  */
 -->
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
-    <body>
-        <!-- Remove the Luma x-magento-init JS block -->
-        <referenceBlock name="rollpix.imageflip.js" remove="true"/>
-
-        <!-- Add Hyvä-compatible vanilla JS block -->
-        <referenceContainer name="before.body.end">
-            <block class="Magento\Framework\View\Element\Template"
-                   name="rollpix.imageflip.hyva.js"
-                   template="Rollpix_ImageFlipHoverHyvaCompat::js/init-hyva.phtml">
-                <arguments>
-                    <argument name="view_model" xsi:type="object">Rollpix\ImageFlipHover\ViewModel\ImageFlip</argument>
-                </arguments>
-            </block>
-        </referenceContainer>
-    </body>
+    <body/>
 </page>
