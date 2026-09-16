@@ -89,11 +89,8 @@ bin/magento setup:static-content:deploy -f
 bin/magento cache:flush
 ```
 
-Para temas Hyva, tambien habilitar:
-```bash
-bin/magento module:enable Rollpix_ImageFlipHoverHyvaCompat
-bin/magento setup:upgrade
-```
+Eso es todo: sirve igual para Luma y para Hyva, no hay un modulo companero que
+haya que habilitar aparte.
 
 ---
 
@@ -160,18 +157,22 @@ Cuando `Rollpix_ConfigurableGallery` esta instalado, el slider lee la columna `a
 
 ## Soporte Hyva
 
-El modulo incluye `Rollpix_ImageFlipHoverHyvaCompat`, un sub-modulo que:
+Hyva funciona sin tocar nada. El modulo trae dos builds del mismo slider y elige
+uno segun el tema activo:
 
-- Reemplaza el JS de jQuery/RequireJS con vanilla JavaScript
-- Soporta todas las funciones: flip, slider, todos los tipos de navegacion e indicadores
-- CSS agnositco al tema (funciona en Luma y Hyva)
+| Tema | Build | Como se carga |
+|---|---|---|
+| Luma y derivados | `js/hover-slider.js` (AMD + jQuery) | `x-magento-init` |
+| Hyva y derivados | `js/hover-slider-standalone.js` (vanilla) | `<script defer>` comun |
 
-Habilitar con:
-```bash
-bin/magento module:enable Rollpix_ImageFlipHoverHyvaCompat
-```
+La deteccion recorre la cadena de herencia del tema, asi que un tema hijo de
+`Hyva/default` se reconoce como Hyva. El markup, las clases CSS y todas las
+funciones --flip, slider, tipos de navegacion, indicadores-- son las mismas en
+los dos.
 
-> **Nota**: Deshabilitar HyvaCompat cuando se usa tema Luma.
+> **Obsoleto**: `Rollpix_ImageFlipHoverHyvaCompat` era el que traia el build
+> vanilla y habia que habilitarlo a mano. Desde 2.2.0 no hace nada; da igual si
+> queda habilitado o deshabilitado.
 
 ---
 

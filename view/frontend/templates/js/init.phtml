@@ -8,6 +8,11 @@
  * In flip mode on desktop: hover shows image 2 (no controls for 2-image products).
  * In flip mode on mobile: auto-upgrades to slider with swipe + indicators.
  *
+ * Two builds, one module: Luma gets the AMD/jQuery one through RequireJS, Hyva
+ * gets the standalone one as a plain <script>, because it has no loader to speak
+ * of. The theme decides (ViewModel::isHyvaTheme()) so neither storefront needs an
+ * extra module enabled to work.
+ *
  * @var \Magento\Framework\View\Element\Template $block
  * @var \Magento\Framework\Escaper $escaper
  * @var \Rollpix\ImageFlipHover\ViewModel\ImageFlip $viewModel
@@ -18,11 +23,23 @@ $viewModel = $block->getData('view_model');
 if (!$viewModel->isEnabled()) {
     return;
 }
-?>
-<script type="text/x-magento-init">
-{
-    "*": {
-        "Rollpix_ImageFlipHover/js/hover-slider": <?= /* @noEscape */ $viewModel->getConfigJson() ?>
+
+if ($viewModel->isHyvaTheme()):
+    // The settings travel as a JSON island instead of an inline script so the
+    // page keeps working under a strict CSP with no hash to maintain.
+    ?>
+    <script type="application/json" id="rollpix-imageflip-config">
+        <?= /* @noEscape */ $viewModel->getConfigJson() ?>
+    </script>
+    <script defer src="<?= $escaper->escapeUrl(
+        $block->getViewFileUrl('Rollpix_ImageFlipHover::js/hover-slider-standalone.js')
+    ) ?>"></script>
+<?php else: ?>
+    <script type="text/x-magento-init">
+    {
+        "*": {
+            "Rollpix_ImageFlipHover/js/hover-slider": <?= /* @noEscape */ $viewModel->getConfigJson() ?>
+        }
     }
-}
-</script>
+    </script>
+<?php endif; ?>
