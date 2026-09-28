@@ -19,6 +19,19 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class ImageFlipService
 {
+    private const PARENT_FIRST_IMAGE_ROLE = 'small_image';
+
+    /**
+     * Prefix some importers add to the file name ("16258_9162-gulish_blanco.webp").
+     */
+    private const IMPORT_PREFIX_PATTERN = '/^\d+_\d+-/';
+
+    /**
+     * Suffix Magento appends when the same file is uploaded again ("foo_1.jpg", "foo_1_1.jpg").
+     * Only "_1" chains: "_2", "_3"... are usually different photos of a numbered series.
+     */
+    private const DUPLICATE_SUFFIX_PATTERN = '/(?:_+1)+_*$/';
+
     /**
      * @var array In-memory cache of gallery URLs keyed by product ID
      */
@@ -665,6 +678,10 @@ class ImageFlipService
             }
         }
 
+        if ($product->getTypeId() === 'configurable' && $this->config->isConfigurableParentImageFirst()) {
+            $imagePaths = $this->prependParentSmallImage($product, $imagePaths);
+        }
+
         if (count($imagePaths) < 2) {
             return [
                 'hasSliderImages' => false,
@@ -687,6 +704,49 @@ class ImageFlipService
             'galleryUrls' => $galleryUrls,
             'imageCount' => count($galleryUrls)
         ];
+    }
+
+    /**
+     * Put the configurable's own Small image first, so the listing opens on the image
+     * the admin picked and not on whichever variant has the lowest entity ID. (WE-56972)
+     *
+     * @param ProductInterface|Product $product
+     * @param string[] $imagePaths
+     * @return string[]
+     */
+    private function prependParentSmallImage($product, array $imagePaths): array
+    {
+        $smallImage = (string) $product->getData(self::PARENT_FIRST_IMAGE_ROLE);
+        if (!$this->isValidImageValue($smallImage)) {
+            return $imagePaths;
+        }
+
+        // The same photo is usually uploaded once to the parent and once to the variant, so it
+        // lives in two files with different names; drop the variant copy to avoid a repeated slide.
+        $smallImageKey = $this->getImageFileKey($smallImage);
+        $imagePaths = array_filter($imagePaths, function (string $path) use ($smallImageKey): bool {
+            return $this->getImageFileKey($path) !== $smallImageKey;
+        });
+
+        $imagePaths = array_values(array_unique(array_merge([$smallImage], $imagePaths)));
+
+        return array_slice($imagePaths, 0, $this->config->getMaxImages());
+    }
+
+    /**
+     * File name stripped of extension, importer prefix and Magento's duplicate suffix, so the
+     * copies of one photo ("gulish_blanco.webp", "16258_9162-gulish_blanco_1.jpg") compare equal.
+     *
+     * @param string $path
+     * @return string
+     */
+    private function getImageFileKey(string $path): string
+    {
+        $name = pathinfo($path, PATHINFO_FILENAME);
+        $name = (string) preg_replace(self::IMPORT_PREFIX_PATTERN, '', $name);
+        $name = (string) preg_replace(self::DUPLICATE_SUFFIX_PATTERN, '', $name);
+
+        return strtolower($name);
     }
 
     /**

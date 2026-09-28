@@ -30,6 +30,7 @@ class Config extends AbstractHelper
     private const XML_PATH_MAX_IMAGES = 'rollpix_imageflip/hover_slider/max_images';
     private const XML_PATH_CONFIGURABLE_IMAGES_PER_CHILD = 'rollpix_imageflip/hover_slider/configurable_images_per_child';
     private const XML_PATH_VARIANT_SELECTOR_ATTRIBUTES = 'rollpix_imageflip/hover_slider/variant_selector_attributes';
+    private const XML_PATH_CONFIGURABLE_PARENT_IMAGE_FIRST = 'rollpix_imageflip/hover_slider/configurable_parent_image_first';
     private const XML_PATH_LOOP = 'rollpix_imageflip/hover_slider/loop';
 
     // Desktop
@@ -423,6 +424,22 @@ class Config extends AbstractHelper
         }
 
         return array_values(array_filter(array_map('trim', explode(',', $value))));
+    }
+
+    /**
+     * Whether configurables open the slider on their own Small image (the one the
+     * admin picked) instead of the first variant's image.
+     *
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isConfigurableParentImageFirst(?int $storeId = null): bool
+    {
+        return $this->scopeConfig->isSetFlag(
+            self::XML_PATH_CONFIGURABLE_PARENT_IMAGE_FIRST,
+            ScopeInterface::SCOPE_STORE,
+            $storeId
+        );
     }
 
     /**
