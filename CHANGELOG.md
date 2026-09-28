@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Slider mode: new setting **"Primera Imagen del Configurable"** (`hover_slider/configurable_parent_image_first`, default *No*). When enabled, configurable products open the listing slider on their own **Small** image — the one picked in the admin — followed by the variant images. Since IS-6453 slide 0 is the first variant, and the variants are ordered by entity ID, so the listing showed an arbitrary color (e.g. the "transparente" variant) while the PDP showed the chosen image. Default *No* keeps the IS-6453 behavior on every other store. (WE-56972)
+
 ## [2.1.3] - 2026-06-25
 
 ### Fixed

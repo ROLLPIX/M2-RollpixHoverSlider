@@ -105,6 +105,12 @@
                     <can_be_empty>1</can_be_empty>
                     <depends><field id="rollpix_imageflip/general/mode">slider</field></depends>
                 </field>
+                <field id="configurable_parent_image_first" translate="label comment" type="select" sortOrder="48" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Primera Imagen del Configurable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[<strong>Sí</strong> = el listado muestra primero la imagen <strong>Small</strong> elegida en el producto configurable, y después las de cada variante. <strong>No</strong> = muestra primero la imagen de la primera variante (comportamiento clásico).]]></comment>
+                    <depends><field id="rollpix_imageflip/general/mode">slider</field></depends>
+                </field>
                 <field id="loop" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Navegación Circular</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

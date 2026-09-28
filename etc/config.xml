@@ -25,6 +25,7 @@
                 <transition_speed>250</transition_speed>
                 <max_images>8</max_images>
                 <configurable_images_per_child>0</configurable_images_per_child>
+                <configurable_parent_image_first>0</configurable_parent_image_first>
                 <loop>0</loop>
             </hover_slider>
             <desktop>

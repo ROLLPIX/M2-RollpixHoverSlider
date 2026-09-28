@@ -19,6 +19,8 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class ImageFlipService
 {
+    private const PARENT_FIRST_IMAGE_ROLE = 'small_image';
+
     /**
      * @var array In-memory cache of gallery URLs keyed by product ID
      */
@@ -665,6 +667,10 @@ class ImageFlipService
             }
         }
 
+        if ($product->getTypeId() === 'configurable' && $this->config->isConfigurableParentImageFirst()) {
+            $imagePaths = $this->prependParentSmallImage($product, $imagePaths);
+        }
+
         if (count($imagePaths) < 2) {
             return [
                 'hasSliderImages' => false,
@@ -687,6 +693,26 @@ class ImageFlipService
             'galleryUrls' => $galleryUrls,
             'imageCount' => count($galleryUrls)
         ];
+    }
+
+    /**
+     * Put the configurable's own Small image first, so the listing opens on the image
+     * the admin picked and not on whichever variant has the lowest entity ID. (WE-56972)
+     *
+     * @param ProductInterface|Product $product
+     * @param string[] $imagePaths
+     * @return string[]
+     */
+    private function prependParentSmallImage($product, array $imagePaths): array
+    {
+        $smallImage = (string) $product->getData(self::PARENT_FIRST_IMAGE_ROLE);
+        if (!$this->isValidImageValue($smallImage)) {
+            return $imagePaths;
+        }
+
+        $imagePaths = array_values(array_unique(array_merge([$smallImage], $imagePaths)));
+
+        return array_slice($imagePaths, 0, $this->config->getMaxImages());
     }
 
     /**

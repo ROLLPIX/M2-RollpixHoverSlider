@@ -78,3 +78,5 @@
 "Imágenes por Variante (Configurables)","Images per Variant (Configurables)"
 "Configuración del Slider","Slider Configuration"
 "Attributes That Differentiate Images","Attributes That Differentiate Images"
+"Primera Imagen del Configurable","Configurable's First Image"
+"<strong>Sí</strong> = el listado muestra primero la imagen <strong>Small</strong> elegida en el producto configurable, y después las de cada variante. <strong>No</strong> = muestra primero la imagen de la primera variante (comportamiento clásico).","<strong>Yes</strong> = listings open on the <strong>Small</strong> image picked on the configurable product, followed by each variant's images. <strong>No</strong> = listings open on the first variant's image (classic behavior)."
